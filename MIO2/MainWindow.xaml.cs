@@ -20,9 +20,17 @@ namespace MIO2
     /// </summary>
     public partial class MainWindow : Window
     {
+        private NeuroneWeb _web = new NeuroneWeb();
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Start_Button_Click(object sender, RoutedEventArgs e)
+        {
+            StartButton.IsEnabled = false;
+            var learningTask = Task.Factory.StartNew(() => _web.RunLearningTask());
+            StartButton.IsEnabled = true;
         }
     }
 }
