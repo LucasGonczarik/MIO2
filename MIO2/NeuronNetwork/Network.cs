@@ -58,6 +58,7 @@ namespace MIO2.NeuronNetwork
                 var output = NeuronLayers.Last().NodesList[0].Value;
                 var exepctedOutput = inputs.Last();
 
+                //todo complete propagation for neurons
                 var predictionDifference = exepctedOutput - output;
                 if (Math.Abs(predictionDifference) > double.Epsilon)
                 {
