@@ -9,9 +9,11 @@ namespace MIO2.NeuronNetwork
     interface INeuralNode
     {
         double Value { get; }
-        List<Dendrite> Dendrites { get; }
+        List<Dendrite> InDendrites { get; }
+        List<Dendrite> OutDendrites { get; }
 
         void AddDendriteTo(List<INeuralNode> nodes);
+        void AddOutgoingDendrite(Dendrite dendrite);
         void EvaluateNodeValue();
     }
 }

@@ -61,6 +61,36 @@ namespace MIO2.NeuronNetwork
                 var predictionDifference = exepctedOutput - output;
                 if (Math.Abs(predictionDifference) > double.Epsilon)
                 {
+                    Layer lastLayer = NeuronLayers.Last();
+                    Neuron lastNeuron = (Neuron) lastLayer.NodesList[0];
+                    double deltaOutputSum = SigmoidDeritive(lastNeuron.HiddenSum) * predictionDifference;
+                    foreach (var dendrite in lastNeuron.InDendrites)
+                    {
+                        var weightChange = deltaOutputSum;
+                        dendrite.PertialError = deltaOutputSum * dendrite.Weight;
+                        dendrite.Weight += weightChange / dendrite.PreviousLayerNeuron.Value;
+                    }
+
+                    Layer previousLayer = NeuronLayers[NeuronLayers.Count - 2];
+                    foreach (var neuralNode in previousLayer.NodesList)
+                    {
+                        foreach (var dendrite in neuralNode.InDendrites)
+                        {
+                            var weightChange = neuralNode.OutDendrites.Sum(dendrite1 => dendrite1.PertialError) * SigmoidDeritive(neuralNode.Value);
+                            //zmiana ew kolejnych
+                            dendrite.PertialError = deltaOutputSum * dendrite.Weight;
+                            dendrite.Weight += weightChange / dendrite.PreviousLayerNeuron.Value;
+                        }
+                    }
+
+
+//                    for (var layerIndex = NeuronLayers.Count - 1; layerIndex >= 0; layerIndex--)
+//                    {
+//                        Layer actualLayer = NeuronLayers[layerIndex];
+//
+//                        //recalculate score for layer
+//
+//                    }
                     //run backward propagation
                     recordIndex = 0;
                 }

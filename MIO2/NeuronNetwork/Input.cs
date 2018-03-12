@@ -9,12 +9,15 @@ namespace MIO2.NeuronNetwork
     class Input : INeuralNode
     {
         public double Value { get; set; }
-        public List<Dendrite> Dendrites { get; }
+        public double PartialError { get; set; }
+        public List<Dendrite> InDendrites { get; }
+        public List<Dendrite> OutDendrites { get; }
 
 
         public Input()
         {
-            Dendrites = new List<Dendrite>();
+            InDendrites = new List<Dendrite>();
+            OutDendrites = new List<Dendrite>();
         }
 
         public Input(double value) : this()
@@ -23,6 +26,11 @@ namespace MIO2.NeuronNetwork
         }
 
         public void AddDendriteTo(List<INeuralNode> nodes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddOutgoingDendrite(Dendrite dendrite)
         {
             throw new NotImplementedException();
         }

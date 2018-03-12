@@ -8,42 +8,51 @@ namespace MIO2.NeuronNetwork
 {
     class Neuron : INeuralNode
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(Neuron));
-
-        public DataParser Parser { get; } = new DataParser();
-
         public Layer OwnLayer { get; }
+
 
         public double ActivationThreshold { get; }
         public double ScalesChangeParameter { get; }
 
-        public List<Dendrite> OutDendrites;
 
         public double Value { get; private set; }
-        public List<Dendrite> Dendrites { get; }
+        public double PartialError { get; set; }
+        public double HiddenSum { get; private set; }
+
+
+        public List<Dendrite> InDendrites { get; }
+        public List<Dendrite> OutDendrites { get; }
+
 
         public Neuron(Layer layer)
         {
-            this.Dendrites = new List<Dendrite>();
+            this.InDendrites = new List<Dendrite>();
+            this.OutDendrites = new List<Dendrite>();
 
             this.OwnLayer = layer;
             this.ActivationThreshold = 0.5d;
             this.ScalesChangeParameter = 0.1d;
         }
 
-        /// <param name="previousNodes">Nodes from previous layer</param>
         public void AddDendriteTo(List<INeuralNode> previousNodes)
         {
             foreach (var previousNode in previousNodes)
             {
-                Dendrite dendrite = new Dendrite(previousNode, this);
-                Dendrites.Add(dendrite);
+                var dendrite = new Dendrite(previousNode, this);
+                InDendrites.Add(dendrite);
+                previousNode.AddOutgoingDendrite(dendrite);
             }
         }
 
+        public void AddOutgoingDendrite(Dendrite dendrite)
+        {
+            this.OutDendrites.Add(dendrite);
+        }
+
+
         public void EvaluateNodeValue()
         {
-            this.Value = OutDendrites.Sum(dendrite => dendrite.Weight * dendrite.PreviousNeuron.Value);
+            this.Value = InDendrites.Sum(dendrite => dendrite.Weight * dendrite.PreviousLayerNeuron.Value);
         }
 
         private void CopyScalesToBuffor(List<double> scales)
@@ -63,15 +72,15 @@ namespace MIO2.NeuronNetwork
 
         public double CalculateScore()
         {
-            double sum = 0;
-            foreach (var dendrite in Dendrites)
+            HiddenSum = 0;
+            foreach (var dendrite in InDendrites)
             {
-                double dendriteWeight = dendrite.Weight;
-                double value = dendrite.PreviousNeuron.Value;
-                sum += dendriteWeight * value;
+                var dendriteWeight = dendrite.Weight;
+                var value = dendrite.PreviousLayerNeuron.Value;
+                HiddenSum += dendriteWeight * value;
             }
 
-            return Sigmoid(sum);
+            return Value = Sigmoid(HiddenSum);
         }
 
         public static double Sigmoid(double value)
