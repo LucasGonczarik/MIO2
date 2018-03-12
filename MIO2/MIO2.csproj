@@ -66,7 +66,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Dendrite.cs" />
+    <Compile Include="NeuronNetwork\Dendrite.cs" />
     <Compile Include="FileOperations\DataParser.cs" />
     <Compile Include="FileOperations\FileSelectDialogHandler.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -75,9 +75,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Neurone.cs" />
-    <Compile Include="NeuroneWeb.cs" />
-    <Compile Include="NeuronLayer.cs" />
+    <Compile Include="NeuronNetwork\Input.cs" />
+    <Compile Include="NeuronNetwork\INeuralNode.cs" />
+    <Compile Include="NeuronNetwork\Neuron.cs" />
+    <Compile Include="NeuronNetwork\Network.cs" />
+    <Compile Include="NeuronNetwork\Layer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

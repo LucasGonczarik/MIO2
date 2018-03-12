@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MIO2.NeuronNetwork;
 
 namespace MIO2
 {
@@ -20,7 +21,7 @@ namespace MIO2
     /// </summary>
     public partial class MainWindow : Window
     {
-        private NeuroneWeb _web = new NeuroneWeb();
+        private Network _web = new Network();
         public MainWindow()
         {
             InitializeComponent();
