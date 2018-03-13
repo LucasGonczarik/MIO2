@@ -18,7 +18,7 @@ namespace MIO2.NeuronNetwork
         {
             this._id = _counter++;
 //            Weight = Dendrite.Random.NextDouble() * (1.0 - 0.00000001) + 0.00000001;
-            Weight = Dendrite.Random.NextDouble() * (1.0 - 0.25) + 0.255;
+            Weight = Dendrite.Random.NextDouble() * (1.0 - 0.1) + 0.1;
             PreviousLayerNeuron = previousNeuron;
             ActualNeuron = actualNeuron;
         }

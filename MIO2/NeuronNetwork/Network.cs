@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualBasic;
 using MIO2.FileOperations;
 using PerceptonMIO.FileOperations;
 
@@ -9,16 +9,16 @@ namespace MIO2.NeuronNetwork
 {
     class Network
     {
-        private const int SafeCount = 10000; 
+        private const int SafeCount = 1000; 
         private const double ActivationThreshold = 0.5;
-        private const double LearningRate = 2;
+        private const double LearningRate = 0.01;
         public List<Layer> NeuronLayers { get; }
         public Layer InputLayer { get; }
 
         public Network()
         {
             InputLayer = new Layer(this, new Input(), new Input());
-            NeuronLayers = new List<Layer> { InputLayer, new Layer(this, 3), new Layer(this, 2), new Layer(this, 1)};
+            NeuronLayers = new List<Layer> { InputLayer, new Layer(this, 3), new Layer(this, 1)};
             for (var indexOfLayer = 0; indexOfLayer < NeuronLayers.Count - 1; indexOfLayer++)
             {
                 CreateOutDendritesBeetwen(NeuronLayers[indexOfLayer], NeuronLayers[indexOfLayer + 1]);
@@ -45,6 +45,7 @@ namespace MIO2.NeuronNetwork
         private void LearnFromRedords(IReadOnlyList<double[]> records)
         {
             var recordIndex = 0;
+            List<double> resultsDifference = new List<double>();
             for (var counter = 0; counter < SafeCount && recordIndex < records.Count; counter++)
             {
                 //reset network inputs
@@ -66,8 +67,11 @@ namespace MIO2.NeuronNetwork
                     //reset record loop
                     recordIndex = 0;
                 }
-                Console.WriteLine(string.Join(" ", InputLayer.NodesList.Select(node => node.Value)) + " : " + exepctedOutput + " / " + modulatedOutput);
+                resultsDifference.Add(predictionDifference);
+                Console.WriteLine(string.Join(" ", InputLayer.NodesList.Select(node => node.Value)) + " [" + exepctedOutput + "/" + modulatedOutput + "] : " + predictionDifference);
             }
+
+            DataParser.SaveListToCsv(resultsDifference);
         }
 
         private double RunPredictionForRecord(IReadOnlyList<double> inputs)

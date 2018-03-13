@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.VisualBasic.FileIO;
@@ -56,6 +57,18 @@ namespace MIO2.FileOperations
 
             File.WriteAllText(System.AppDomain.CurrentDomain.BaseDirectory + FileName, csv.ToString());
             _scalesBuffer = new List<List<double>>();
+        }
+
+        public static void SaveListToCsv(List<double> values)
+        {
+            var csv = new StringBuilder();
+
+            foreach (var value in values)
+            {
+                csv.AppendLine(value.ToString(CultureInfo.InvariantCulture));
+            }
+
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + FileName, csv.ToString());
         }
 
         private static string ParseRecordToCsvString(IEnumerable<double> record)
