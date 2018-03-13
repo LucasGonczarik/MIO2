@@ -51,7 +51,8 @@ namespace MIO2.NeuronNetwork
 
         public void EvaluateNodeValue()
         {
-            this.Value = InDendrites.Sum(dendrite => dendrite.Weight * dendrite.PreviousLayerNeuron.Value);
+            this.Value = Network.Sigmoid(InDendrites.Sum(dendrite => dendrite.Weight * dendrite.PreviousLayerNeuron.Value));
+            this.HiddenSum = InDendrites.Sum(dendrite => dendrite.Weight * dendrite.PreviousLayerNeuron.Value);
         }
 
         public override string ToString()
