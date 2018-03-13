@@ -63,8 +63,8 @@ namespace MIO2.NeuronNetwork
                 }
 
                 resultsDifference.Add(predictionDifference);
-                Console.WriteLine(counter + @" // " + string.Join(" ", InputLayer.NodesList.Select(node => node.Value)) + @" [" +
-                                  exepctedOutput + @"/" + modulatedOutput + @"] : " + predictionDifference);
+                Console.WriteLine(@"{0} {1} : {2}", string.Join(string.Empty, InputLayer.NodesList.Select(node => node.Value)),
+                    exepctedOutput, predictionDifference);
             }
 
             DataParser.SaveListToCsv(resultsDifference);
@@ -146,7 +146,9 @@ namespace MIO2.NeuronNetwork
 
         private static double SigmoidDeritive(double x)
         {
-            return Math.Pow(Math.Exp(-x) / (1 + Math.Exp(-x)), 2);
+            var sigmoidValue = Sigmoid(x);
+            return sigmoidValue * (1 - sigmoidValue);
+//            return Math.Pow(Math.Exp(-x) / (1 + Math.Exp(-x)), 2);
         }
     }
 }
