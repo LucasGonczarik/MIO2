@@ -4,19 +4,28 @@ namespace MIO2.NeuronNetwork
 {
     class Dendrite
     {
+        private static int _counter;
+        private static readonly Random Random = new Random();
+        private readonly int _id;
+
         public double Weight { get; set; }
 
         public INeuralNode ActualNeuron { get; }
 
         public INeuralNode PreviousLayerNeuron { get; }
-        public double PertialError { get; set; }
 
         public Dendrite(INeuralNode previousNeuron, INeuralNode actualNeuron)
         {
-            var random = new Random();
-            Weight = random.NextDouble() * (0.00000001 - 1.0) + 0.00000001;
+            this._id = _counter++;
+//            Weight = Dendrite.Random.NextDouble() * (1.0 - 0.00000001) + 0.00000001;
+            Weight = Dendrite.Random.NextDouble() * (1.0 - 0.25) + 0.255;
             PreviousLayerNeuron = previousNeuron;
             ActualNeuron = actualNeuron;
+        }
+
+        public override string ToString()
+        {
+            return "Dendrite: " + _id + ", weight: " + Weight;
         }
     }
 }

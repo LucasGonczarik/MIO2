@@ -8,7 +8,16 @@ namespace MIO2.NeuronNetwork
 {
     class Input : INeuralNode
     {
-        public double Value { get; set; }
+        private double _value;
+
+        public double Value
+        {
+            get { return _value; }
+            set { _value = value; }
+        }
+
+        public double HiddenSum => _value;
+
         public double PartialError { get; set; }
         public List<Dendrite> InDendrites { get; }
         public List<Dendrite> OutDendrites { get; }
@@ -22,17 +31,23 @@ namespace MIO2.NeuronNetwork
 
         public Input(double value) : this()
         {
-            Value = value;
+            this._value = value;
         }
 
-        public void AddDendriteTo(List<INeuralNode> nodes)
+
+        public void AddOutDendriteTo(List<INeuralNode> nextNodes)
         {
-            throw new NotImplementedException();
+            foreach (var nextNode in nextNodes)
+            {
+                var dendrite = new Dendrite(this, nextNode);
+                OutDendrites.Add(dendrite);
+                nextNode.AddInDendrite(dendrite);
+            }
         }
 
-        public void AddOutgoingDendrite(Dendrite dendrite)
+        public void AddInDendrite(Dendrite dendrite)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException();
         }
 
         public void EvaluateNodeValue()

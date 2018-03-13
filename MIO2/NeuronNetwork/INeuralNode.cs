@@ -11,9 +11,12 @@ namespace MIO2.NeuronNetwork
         double Value { get; }
         List<Dendrite> InDendrites { get; }
         List<Dendrite> OutDendrites { get; }
+        double PartialError { get; set; }
+        double HiddenSum { get; }
 
-        void AddDendriteTo(List<INeuralNode> nodes);
-        void AddOutgoingDendrite(Dendrite dendrite);
+
+        void AddOutDendriteTo(List<INeuralNode> nodes);
+        void AddInDendrite(Dendrite dendrite);
         void EvaluateNodeValue();
     }
 }

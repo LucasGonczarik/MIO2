@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MIO2.FileOperations;
 using PerceptonMIO.FileOperations;
@@ -8,25 +9,27 @@ namespace MIO2.NeuronNetwork
 {
     class Network
     {
+        private const int SafeCount = 10000; 
+        private const double ActivationThreshold = 0.5;
+        private const double LearningRate = 2;
         public List<Layer> NeuronLayers { get; }
         public Layer InputLayer { get; }
 
         public Network()
         {
-            NeuronLayers = new List<Layer> {new Layer(this, 2), new Layer(this, 1)};
             InputLayer = new Layer(this, new Input(), new Input());
-            CreateDendritesBeetwen(InputLayer, NeuronLayers[0]);
+            NeuronLayers = new List<Layer> { InputLayer, new Layer(this, 3), new Layer(this, 2), new Layer(this, 1)};
             for (var indexOfLayer = 0; indexOfLayer < NeuronLayers.Count - 1; indexOfLayer++)
             {
-                CreateDendritesBeetwen(NeuronLayers[indexOfLayer], NeuronLayers[indexOfLayer + 1]);
+                CreateOutDendritesBeetwen(NeuronLayers[indexOfLayer], NeuronLayers[indexOfLayer + 1]);
             }
         }
 
-        private static void CreateDendritesBeetwen(Layer preciousLayer, Layer actualLayer)
+        private static void CreateOutDendritesBeetwen(Layer actualLayer, Layer nextLayer)
         {
-            foreach (var actualNeuralNode in actualLayer.NodesList)
+            foreach (var actualNode in actualLayer.NodesList)
             {
-                actualNeuralNode.AddDendriteTo(preciousLayer.NodesList);
+                actualNode.AddOutDendriteTo(nextLayer.NodesList);
             }
         }
 
@@ -41,59 +44,75 @@ namespace MIO2.NeuronNetwork
 
         private void LearnFromRedords(IReadOnlyList<double[]> records)
         {
-            for (var recordIndex = 0; recordIndex < records.Count; recordIndex++)
+            var recordIndex = 0;
+            for (var counter = 0; counter < SafeCount && recordIndex < records.Count; counter++)
             {
                 //reset network inputs
                 var inputs = GetOnlyRecordInputs(records[recordIndex]);
-                var inputsNodesList = InputLayer.NodesList.Cast<Input>().ToList();
-                UpdateInputNodes(inputsNodesList, inputs);
+                var exepctedOutput = records[recordIndex].Last();
+                recordIndex++;
 
-                foreach (var neuronLayer in NeuronLayers)
+
+                var output = RunPredictionForRecord(inputs);
+                var modulatedOutput = Sigmoid(output);
+                var predictionDifference = exepctedOutput - modulatedOutput;
+
+                ValueType t = 0;
+                //recalculate partial errors for each node
+                if (Math.Abs(predictionDifference) > ActivationThreshold)
                 {
-                    //recalculate value from first layer to nth layer
-                    neuronLayer.EvaluateLayerNodes();
-                }
-
-                //get value of last neuron MUST BE ONLY ONE IN LAST LAYER
-                var output = NeuronLayers.Last().NodesList[0].Value;
-                var exepctedOutput = inputs.Last();
-
-                //todo complete propagation for neurons
-                var predictionDifference = exepctedOutput - output;
-                if (Math.Abs(predictionDifference) > double.Epsilon)
-                {
-                    Layer lastLayer = NeuronLayers.Last();
-                    Neuron lastNeuron = (Neuron) lastLayer.NodesList[0];
-                    double deltaOutputSum = SigmoidDeritive(lastNeuron.HiddenSum) * predictionDifference;
-                    foreach (var dendrite in lastNeuron.InDendrites)
-                    {
-                        var weightChange = deltaOutputSum;
-                        dendrite.PertialError = deltaOutputSum * dendrite.Weight;
-                        dendrite.Weight += weightChange / dendrite.PreviousLayerNeuron.Value;
-                    }
-
-                    Layer previousLayer = NeuronLayers[NeuronLayers.Count - 2];
-                    foreach (var neuralNode in previousLayer.NodesList)
-                    {
-                        foreach (var dendrite in neuralNode.InDendrites)
-                        {
-                            var weightChange = neuralNode.OutDendrites.Sum(dendrite1 => dendrite1.PertialError) * SigmoidDeritive(neuralNode.Value);
-                            //zmiana ew kolejnych
-                            dendrite.PertialError = deltaOutputSum * dendrite.Weight;
-                            dendrite.Weight += weightChange / dendrite.PreviousLayerNeuron.Value;
-                        }
-                    }
-
-
-//                    for (var layerIndex = NeuronLayers.Count - 1; layerIndex >= 0; layerIndex--)
-//                    {
-//                        Layer actualLayer = NeuronLayers[layerIndex];
-//
-//                        //recalculate score for layer
-//
-//                    }
-                    //run backward propagation
+                    CalculatePartialError(predictionDifference);
+                    ModifyWeight();
+                    //reset record loop
                     recordIndex = 0;
+                }
+                Console.WriteLine(string.Join(" ", InputLayer.NodesList.Select(node => node.Value)) + " : " + exepctedOutput + " / " + modulatedOutput);
+            }
+        }
+
+        private double RunPredictionForRecord(IReadOnlyList<double> inputs)
+        {
+            var inputsNodesList = InputLayer.NodesList.Cast<Input>().ToList();
+            UpdateInputNodes(inputsNodesList, inputs);
+
+            foreach (var neuronLayer in NeuronLayers)
+            {
+                neuronLayer.EvaluateLayerNodes();
+            }
+
+            //get value of last neuron MUST BE ONLY ONE IN LAST LAYER
+            var output = NeuronLayers.Last().NodesList[0].Value;
+            return output;
+        }
+
+        private void CalculatePartialError(double predictionDifference)
+        {
+            NeuronLayers.Last().NodesList[0].PartialError = predictionDifference;
+            for (var index = NeuronLayers.Count - 2; index >= 0; index--)
+            {
+                var neuronLayer = NeuronLayers[index];
+                foreach (var neuralNode in neuronLayer.NodesList)
+                {
+                    neuralNode.PartialError = neuralNode.OutDendrites.Sum(dendrite =>
+                        dendrite.Weight * dendrite.ActualNeuron.PartialError);
+                }
+            }
+        }
+
+        private void ModifyWeight()
+        {
+            foreach (var neuronLayer in NeuronLayers)
+            {
+                //we're looking backward, so we're skiping 0 layer -> inputs
+                for (var index = 0; index < neuronLayer.NodesList.Count; index++)
+                {
+                    var neuralNode = neuronLayer.NodesList[index];
+                    foreach (var nodeInDendrite in neuralNode.InDendrites)
+                    {
+                        nodeInDendrite.Weight += LearningRate * neuralNode.PartialError *
+                                                 SigmoidDeritive(neuralNode.HiddenSum) *
+                                                 nodeInDendrite.PreviousLayerNeuron.Value;
+                    }
                 }
             }
         }
@@ -118,6 +137,11 @@ namespace MIO2.NeuronNetwork
             var result = new T[length];
             Array.Copy(data, index, result, 0, length);
             return result;
+        }
+
+        public static double Sigmoid(double value)
+        {
+            return 1.0d / (1.0d + Math.Exp(-value));
         }
 
         private static double SigmoidDeritive(double x)
